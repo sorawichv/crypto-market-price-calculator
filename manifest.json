@@ -1,0 +1,25 @@
+/* STREAMING_CHUNK:Defining PWA Web App Manifest settings... */
+{
+"short_name": "Crypto THB",
+"name": "Crypto THB Valuation & Cost Basis",
+"description": "คำนวณราคาคริปโทเป็นเงินบาทตามเวลาจริงย้อนหลังด้วย CoinGecko API & บันทึกต้นทุน",
+"icons": [
+{
+"src": "icon-192.png",
+"type": "image/png",
+"sizes": "192x192"
+},
+{
+"src": "icon-512.png",
+"type": "image/png",
+"sizes": "512x512",
+"purpose": "any maskable"
+}
+],
+"start_url": "./index.html",
+"background_color": "#0f172a",
+"theme_color": "#0f172a",
+"display": "standalone",
+"orientation": "portrait-primary",
+"scope": "./"
+}
