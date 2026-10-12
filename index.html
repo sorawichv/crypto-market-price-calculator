@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crypto THB Price & Cost Basis Converter</title>
+  
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Crypto THB">
+  
+  <!-- Embedded SVG Icons for Offline PWA -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%230f172a'/><circle cx='256' cy='256' r='180' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%2310b981'/><stop offset='100%25' stop-color='%2314b8a6'/></linearGradient></defs><text x='256' y='325' font-size='220' font-family='sans-serif' font-weight='bold' fill='%230f172a' text-anchor='middle'>฿</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%230f172a'/><circle cx='256' cy='256' r='180' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%2310b981'/><stop offset='100%25' stop-color='%2314b8a6'/></linearGradient></defs><text x='256' y='325' font-size='220' font-family='sans-serif' font-weight='bold' fill='%230f172a' text-anchor='middle'>฿</text></svg>">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            },
+            darkbg: '#0f172a',
+            darkcard: '#1e293b'
+          }
+        }
+      }
+    }
+  </script>
+  <!-- Google Fonts: Noto Sans Thai Looped & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Thai+Looped:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Dynamic Manifest Placeholder -->
+  <link rel="manifest" id="manifestPlaceholder">
+
+  <style>
+    body {
+      font-family: 'Noto Sans Thai Looped', sans-serif;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-white">
+
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i data-lucide="coins" class="w-6 h-6 text-slate-950"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight flex items-center gap-2">
+            Crypto THB Valuation <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">UTC+7</span>
+          </h1>
+          <p class="text-xs text-slate-400">คำนวณราคาคริปโทเป็นเงินบาทตามเวลาจริงย้อนหลังด้วย CoinGecko API & บันทึกต้นทุน</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-700 bg-slate-800/80">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span class="text-slate-200">CoinGecko API</span>
+        </div>
+
+        <button id="pwaInstallBtn" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>ติดตั้ง App</span>
+        </button>
+
+        <button id="openInfoBtn" class="p-2 text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-800 transition">
+          <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow space-y-8">
+
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+      <section class="lg:col-span-5 space-y-6">
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 sm:p-6 shadow-xl backdrop-blur-sm relative overflow-hidden">
+          <div class="absolute -top-12 -right-12 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <h2 class="text-base font-semibold text-slate-200 mb-4 flex items-center justify-between">
+            <span class="flex items-center gap-2"><i data-lucide="calculator" class="w-4 h-4 text-emerald-400"></i> ตัวแปลงราคาเหรียญเป็นบาท</span>
+            <span class="text-xs text-slate-400 font-normal">เขตเวลา: กรุงเทพฯ (UTC+7)</span>
+          </h2>
+
+          <form id="converterForm" class="space-y-4">
+            
+            <div>
+              <label class="block text-xs text-slate-400 mb-2 font-medium">เหรียญยอดนิยม (Quick Select)</label>
+              <div class="flex flex-wrap gap-1.5" id="presetCoinsContainer">
+                <!-- Preset buttons injected via JS -->
+              </div>
+            </div>
+
+            <div>
+              <label for="coinSymbol" class="block text-xs font-medium text-slate-300 mb-1">สัญลักษณ์เหรียญ (Coin Symbol)</label>
+              <div class="relative">
+                <input type="text" id="coinSymbol" placeholder="เช่น BTC, XLM, USDT, DOGE, LTC, ETH" value="BTC" required
+                  class="w-full bg-slate-900/90 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm uppercase mono font-medium text-slate-100 placeholder-slate-500 transition">
+                <span class="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none" id="symbolBadge">Crypto</span>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="coinAmount" class="block text-xs font-medium text-slate-300">จำนวนเหรียญที่ได้รับ</label>
+                <div class="flex gap-1">
+                  <button type="button" class="quick-amt text-[10px] px-1.5 py-0.5 rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-val="0.0001">0.0001</button>
+                  <button type="button" class="quick-amt text-[10px] px-1.5 py-0.5 rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-val="0.001">0.001</button>
+                  <button type="button" class="quick-amt text-[10px] px-1.5 py-0.5 rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-val="0.01">0.01</button>
+                  <button type="button" class="quick-amt text-[10px] px-1.5 py-0.5 rounded bg-slate-700/60 hover:bg-slate-700 text-slate-300" data-val="1">1</button>
+                </div>
+              </div>
+              <input type="number" id="coinAmount" step="any" min="0" value="1" placeholder="1.0" required
+                class="w-full bg-slate-900/90 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm mono text-slate-100 placeholder-slate-500 transition">
+            </div>
+
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label for="datetimeInput" class="block text-xs font-medium text-slate-300">วันที่และเวลาที่รับเงิน (เวลาไทย UTC+7)</label>
+                <button type="button" id="setNowBtn" class="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1">
+                  <i data-lucide="clock" class="w-3 h-3"></i> ใช้เวลาปัจจุบัน
+                </button>
+              </div>
+              <input type="datetime-local" id="datetimeInput" required
+                class="w-full bg-slate-900/90 border border-slate-700 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 rounded-xl px-3.5 py-2.5 text-sm mono text-slate-100 transition">
+            </div>
+
+            <button type="submit" id="submitConvertBtn" class="w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-slate-950 font-semibold rounded-xl shadow-lg shadow-emerald-500/20 active:scale-[0.99] transition flex items-center justify-center gap-2">
+              <i data-lucide="search" class="w-4 h-4"></i>
+              <span id="btnText">ดึงราคา CoinGecko & คำนวณมูลค่า THB</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="bg-slate-800/40 border border-slate-700/40 rounded-xl p-4 text-xs text-slate-400 space-y-2">
+          <div class="flex items-center gap-2 font-medium text-slate-300">
+            <i data-lucide="lightbulb" class="w-4 h-4 text-amber-400"></i> เคล็ดลับคำนวณต้นทุนภาษี
+          </div>
+          <p>
+            ราคา Fair Market Value (THB) ณ วันเวลาที่ได้รับเหรียญ จะถือเป็นทั้ง <strong class="text-slate-200">"รายได้เงินได้พ้อยต์"</strong> และเป็น <strong class="text-slate-200">"ฐานต้นทุน (Cost Basis)"</strong> สำหรับคำนวณกำไร/ขาดทุนเมื่อขายออกในอนาคต
+          </p>
+        </div>
+      </section>
+
+      <section class="lg:col-span-7 space-y-6">
+
+        <div id="resultCard" class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden transition-all duration-300">
+          <div class="flex justify-between items-start mb-4 border-b border-slate-700/60 pb-3">
+            <div>
+              <span class="text-xs text-slate-400 font-medium">ผลการคำนวณราคาประเมิน</span>
+              <h3 class="text-lg font-bold text-slate-100 flex items-center gap-2 mt-0.5">
+                <span id="resCoinSymbol">BTC</span>
+                <span class="text-xs px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 mono" id="resAmountLabel">1.00000000</span>
+              </h3>
+            </div>
+            <span id="resProviderBadge" class="text-[11px] px-2.5 py-1 rounded-full bg-slate-900/80 border border-slate-700 text-emerald-400 font-mono">
+              พร้อมใช้งาน
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4">
+            <div class="bg-slate-900/80 border border-emerald-500/30 rounded-xl p-4 flex flex-col justify-between">
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-400">มูลค่ารวมเงินบาท (Total THB)</span>
+                <button id="copyTotalValBtn" disabled title="คัดลอกเฉพาะตัวเลขมูลค่ารวม" class="text-xs text-slate-400 hover:text-emerald-400 disabled:opacity-30 p-1 rounded hover:bg-slate-800 transition flex items-center gap-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">ตัวเลข</span>
+                </button>
+              </div>
+              <div class="mt-2">
+                <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 mono tracking-tight" id="resTotalTHB">
+                  ฿0.00
+                </div>
+                <div class="text-xs text-slate-400 mt-1 mono" id="resTotalUSD">
+                  ≈ $0.00 USD
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700 rounded-xl p-4 flex flex-col justify-between">
+              <div class="flex justify-between items-center">
+                <span class="text-xs text-slate-400">ราคาต่อ 1 เหรียญ (Unit Price)</span>
+                <button id="copyUnitPriceBtn" disabled title="คัดลอกเฉพาะตัวเลขราคาต่อเหรียญ" class="text-xs text-slate-400 hover:text-emerald-400 disabled:opacity-30 p-1 rounded hover:bg-slate-800 transition flex items-center gap-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span class="text-[10px]">ตัวเลข</span>
+                </button>
+              </div>
+              <div class="mt-2">
+                <div class="text-lg font-bold text-slate-200 mono" id="resUnitPriceTHB">
+                  ฿0.00 / Coin
+                </div>
+                <div class="text-xs text-slate-400 mt-1 mono" id="resUnitPriceUSD">
+                  $0.00 USD
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/50 rounded-xl p-3 text-xs text-slate-400 space-y-1.5 mb-4 mono">
+            <div class="flex justify-between">
+              <span>เวลาอ้างอิง (UTC+7):</span>
+              <span id="resTimestamp" class="text-slate-200">-</span>
+            </div>
+            <div class="flex justify-between">
+              <span>ข้อมูลจาก API:</span>
+              <span id="resSource" class="text-slate-200">-</span>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2 pt-1">
+            <button id="addJournalBtn" disabled class="flex-1 min-w-[150px] py-2.5 px-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-slate-950 font-medium text-xs rounded-xl transition flex items-center justify-center gap-1.5 shadow">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <span>บันทึกลงสมุดบัญชี</span>
+            </button>
+            <button id="copyExcelBtn" disabled class="py-2.5 px-3.5 bg-teal-700 hover:bg-teal-600 disabled:opacity-50 text-slate-100 text-xs font-medium rounded-xl transition flex items-center justify-center gap-1.5 shadow">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+              <span>คัดลอกสำหรับ Excel</span>
+            </button>
+            <button id="copySummaryBtn" disabled class="py-2.5 px-3.5 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-slate-200 text-xs rounded-xl transition flex items-center justify-center gap-1.5">
+              <i data-lucide="copy" class="w-4 h-4"></i>
+              <span>ข้อความสรุป</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-5 sm:p-6 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 class="text-base font-semibold text-slate-200 flex items-center gap-2">
+                <i data-lucide="book-open" class="w-4 h-4 text-emerald-400"></i>
+                สมุดบันทึกรายการและต้นทุน (Cost Basis Journal)
+              </h3>
+              <p class="text-xs text-slate-400">รายการรับเหรียญที่บันทึกไว้สำหรับคำนวณภาษี</p>
+            </div>
+
+            <div class="flex items-center gap-2 flex-wrap">
+              <button id="copyJournalExcelBtn" class="text-xs px-2.5 py-1.5 rounded-lg bg-teal-800/80 hover:bg-teal-700 text-teal-200 border border-teal-700/50 flex items-center gap-1 transition">
+                <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i> ก๊อปปี้ไปวาง Excel
+              </button>
+              <button id="exportCsvBtn" class="text-xs px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center gap-1 transition">
+                <i data-lucide="download" class="w-3.5 h-3.5"></i> CSV
+              </button>
+              <button id="clearJournalBtn" class="text-xs px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 flex items-center gap-1 transition">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> ล้าง
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+              <div class="text-[11px] text-slate-400">จำนวนรายการ</div>
+              <div class="text-base font-bold text-slate-200 mono" id="totalTxCount">0</div>
+            </div>
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+              <div class="text-[11px] text-slate-400">ต้นทุนรวมสะสม</div>
+              <div class="text-base font-bold text-emerald-400 mono" id="totalCostTHB">฿0.00</div>
+            </div>
+            <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
+              <div class="text-[11px] text-slate-400">เหรียญในระบบ</div>
+              <div class="text-base font-bold text-teal-300 mono" id="distinctCoinsCount">0 ชนิด</div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto rounded-xl border border-slate-700/60 bg-slate-900/40 max-h-[320px]">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-800 text-slate-400 uppercase font-medium sticky top-0 z-10">
+                <tr>
+                  <th class="px-3 py-2.5">วัน-เวลา (UTC+7)</th>
+                  <th class="px-3 py-2.5">เหรียญ</th>
+                  <th class="px-3 py-2.5 text-right">จำนวน</th>
+                  <th class="px-3 py-2.5 text-right">ราคา/เหรียญ (THB)</th>
+                  <th class="px-3 py-2.5 text-right">ราคารวม (THB)</th>
+                  <th class="px-3 py-2.5 text-center">จัดการ</th>
+                </tr>
+              </thead>
+              <tbody id="journalTableBody" class="divide-y divide-slate-800/80 mono">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <div id="infoModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-700 pb-3">
+        <h3 class="font-bold text-slate-100 flex items-center gap-2">
+          <i data-lucide="help-circle" class="w-5 h-5 text-emerald-400"></i>
+          วิธีใช้งานและหลักการคำนวณ
+        </h3>
+        <button id="closeInfoBtn" class="text-slate-400 hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300 leading-relaxed max-h-[70vh] overflow-y-auto pr-1">
+        <p>
+          เว็บแอปนี้ออกแบบมาเพื่อผู้ที่ <strong class="text-emerald-400">DCA, สายดรอป, เล่นเกม Faucet หรือรับชำระเงินเป็น Crypto</strong> ที่ต้องการทราบมูลค่าบาท ณ วันเวลาจริงที่ได้รับ
+        </p>
+        <h4 class="font-semibold text-slate-100 text-sm pt-2">ขั้นตอนใช้งานง่ายๆ:</h4>
+        <ol class="list-decimal list-inside space-y-1.5 pl-1 text-slate-300">
+          <li>เลือกระบุสัญลักษณ์เหรียญ (เช่น BTC, XLM, USDT, DOGE)</li>
+          <li>กรอกจำนวนเหรียญที่ได้รับ</li>
+          <li>เลือกวันที่และเวลาที่รับเหรียญ (ระบบดึงราคาอ้างอิงรายวันจาก CoinGecko)</li>
+          <li>กดดึงราคา ระบบจะคำนวณมูลค่า THB ให้อัตโนมัติ</li>
+          <li>กด "บันทึกลงสมุดบัญชีต้นทุน" เพื่อเก็บ Record ไว้ Export CSV</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+  <footer class="border-t border-slate-800 py-6 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+      Crypto THB Cost Basis & Valuation Tool &bull; Powered by CoinGecko Historical API
+    </div>
+  </footer>
+
+  <script>
+    const COIN_MAP = {
+      'BTC': 'bitcoin',
+      'ETH': 'ethereum',
+      'XLM': 'stellar',
+      'USDT': 'tether',
+      'USDC': 'usd-coin',
+      'DOGE': 'dogecoin',
+      'LTC': 'litecoin',
+      'SOL': 'solana',
+      'BNB': 'binancecoin',
+      'XRP': 'ripple',
+      'ADA': 'cardano',
+      'DOT': 'polkadot',
+      'AVAX': 'avalanche-2',
+      'SHIB': 'shiba-inu'
+    };
+
+    const PRESET_COINS = ['BTC', 'XLM', 'USDT', 'DOGE', 'LTC', 'ETH', 'SOL'];
+
+    let journalEntries = JSON.parse(localStorage.getItem('crypto_thb_journal') || '[]');
+    let currentCalculation = null;
+
+    function showToast(message, type = 'info') {
+      const toastContainer = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const bgClass = type === 'error' ? 'bg-rose-900/90 border-rose-700 text-rose-200' :
+                      type === 'success' ? 'bg-emerald-900/90 border-emerald-700 text-emerald-200' :
+                      'bg-slate-800/90 border-slate-700 text-slate-200';
+      
+      toast.className = `p-3.5 rounded-xl border text-xs shadow-lg backdrop-blur-md transition-all duration-300 flex items-center justify-between gap-2 ${bgClass}`;
+      toast.innerHTML = `<span>${message}</span>`;
+      toastContainer.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+
+    function copyToClipboard(text, successMsg = 'คัดลอกเรียบร้อยแล้ว') {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast(successMsg, 'success');
+    }
+
+    function setNowDateTime() {
+      const now = new Date();
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      document.getElementById('datetimeInput').value = now.toISOString().slice(0, 16);
+    }
+
+    async function getCoinGeckoId(symbol) {
+      const upperSym = symbol.toUpperCase().trim();
+      if (COIN_MAP[upperSym]) return COIN_MAP[upperSym];
+
+      try {
+        const res = await fetch(`https://api.coingecko.com/api/v3/search?query=${encodeURIComponent(symbol)}`);
+        const data = await res.json();
+        if (data && data.coins && data.coins.length > 0) {
+          const matched = data.coins.find(c => c.symbol.toUpperCase() === upperSym) || data.coins[0];
+          return matched.id;
+        }
+      } catch (err) {
+        console.warn('CoinGecko search fallback failed:', err);
+      }
+      return symbol.toLowerCase();
+    }
+
+    async function fetchHistoricalPrice(symbol, datetimeStr) {
+      const coinId = await getCoinGeckoId(symbol);
+      const dateObj = new Date(datetimeStr);
+      
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const year = dateObj.getFullYear();
+      const formattedDate = `${day}-${month}-${year}`;
+
+      const historyUrl = `https://api.coingecko.com/api/v3/coins/${coinId}/history?date=${formattedDate}&localization=false`;
+      
+      try {
+        const response = await fetch(historyUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        
+        if (data.market_data && data.market_data.current_price) {
+          const thb = data.market_data.current_price.thb;
+          const usd = data.market_data.current_price.usd;
+          return { thb, usd, source: `CoinGecko Historical (${formattedDate})` };
+        }
+      } catch (e) {
+        console.warn('Historical API failed, falling back to current spot price:', e);
+      }
+
+      // Fallback: Fetch Simple Live Price
+      const simpleUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=thb,usd`;
+      const simpleRes = await fetch(simpleUrl);
+      const simpleData = await simpleRes.json();
+
+      if (simpleData[coinId]) {
+        return {
+          thb: simpleData[coinId].thb,
+          usd: simpleData[coinId].usd,
+          source: 'CoinGecko Spot Price (Fallback)'
+        };
+      }
+
+      throw new Error('ไม่พบข้อมูลราคาสำหรับเหรียญนี้');
+    }
+
+    function renderJournalTable() {
+      const tbody = document.getElementById('journalTableBody');
+      tbody.innerHTML = '';
+
+      if (journalEntries.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-3 py-6 text-center text-slate-500 font-sans">
+              ยังไม่มีข้อมูลบันทึกในสมุดบัญชีต้นทุน
+            </td>
+          </tr>
+        `;
+        document.getElementById('totalTxCount').textContent = '0';
+        document.getElementById('totalCostTHB').textContent = '฿0.00';
+        document.getElementById('distinctCoinsCount').textContent = '0 ชนิด';
+        return;
+      }
+
+      let totalCost = 0;
+      const coinSet = new Set();
+
+      journalEntries.forEach((entry, idx) => {
+        totalCost += entry.totalTHB;
+        coinSet.add(entry.symbol);
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-800/50 transition';
+        tr.innerHTML = `
+          <td class="px-3 py-2.5 whitespace-nowrap text-slate-300">${entry.datetime.replace('T', ' ')}</td>
+          <td class="px-3 py-2.5 font-bold text-emerald-400">${entry.symbol}</td>
+          <td class="px-3 py-2.5 text-right">${Number(entry.amount).toLocaleString(undefined, { maximumFractionDigits: 8 })}</td>
+          <td class="px-3 py-2.5 text-right">฿${Number(entry.unitPriceTHB).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</td>
+          <td class="px-3 py-2.5 text-right font-semibold text-slate-100">฿${Number(entry.totalTHB).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+          <td class="px-3 py-2.5 text-center">
+            <button onclick="deleteJournalEntry(${idx})" class="text-rose-400 hover:text-rose-300 p-1 rounded hover:bg-rose-500/10">
+              <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('totalTxCount').textContent = journalEntries.length;
+      document.getElementById('totalCostTHB').textContent = '฿' + totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      document.getElementById('distinctCoinsCount').textContent = `${coinSet.size} ชนิด`;
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function deleteJournalEntry(index) {
+      journalEntries.splice(index, 1);
+      localStorage.setItem('crypto_thb_journal', JSON.stringify(journalEntries));
+      renderJournalTable();
+      showToast('ลบรายการสำเร็จแล้ว', 'info');
+    }
+
+    function exportCSV() {
+      if (journalEntries.length === 0) {
+        showToast('ไม่มีข้อมูลสำหรับ Export', 'error');
+        return;
+      }
+
+      let csv = 'DateTime (UTC+7),Symbol,Amount,UnitPriceTHB,TotalTHB,Source\n';
+      journalEntries.forEach(e => {
+        csv += `"${e.datetime}","${e.symbol}",${e.amount},${e.unitPriceTHB},${e.totalTHB},"${e.source}"\n`;
+      });
+
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `crypto_cost_basis_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('ส่งออกไฟล์ CSV เรียบร้อยแล้ว', 'success');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      setNowDateTime();
+      renderJournalTable();
+
+      if (window.lucide) lucide.createIcons();
+
+      // Render preset coin buttons
+      const presetContainer = document.getElementById('presetCoinsContainer');
+      PRESET_COINS.forEach(coin => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 font-mono text-slate-300 transition';
+        btn.textContent = coin;
+        btn.onclick = () => {
+          document.getElementById('coinSymbol').value = coin;
+        };
+        presetContainer.appendChild(btn);
+      });
+
+      // Quick amount buttons
+      document.querySelectorAll('.quick-amt').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.getElementById('coinAmount').value = btn.getAttribute('data-val');
+        });
+      });
+
+      document.getElementById('setNowBtn').addEventListener('click', setNowDateTime);
+
+      // Form submission logic
+      document.getElementById('converterForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const symbol = document.getElementById('coinSymbol').value.toUpperCase().trim();
+        const amount = parseFloat(document.getElementById('coinAmount').value);
+        const datetime = document.getElementById('datetimeInput').value;
+
+        if (!symbol || isNaN(amount) || amount <= 0 || !datetime) {
+          showToast('กรุณากรอกข้อมูลให้ครบถ้วน', 'error');
+          return;
+        }
+
+        const submitBtn = document.getElementById('submitConvertBtn');
+        const btnText = document.getElementById('btnText');
+        submitBtn.disabled = true;
+        btnText.textContent = 'กำลังดึงราคาจาก CoinGecko...';
+
+        try {
+          const result = await fetchHistoricalPrice(symbol, datetime);
+          const totalTHB = amount * result.thb;
+          const totalUSD = amount * result.usd;
+
+          currentCalculation = {
+            symbol,
+            amount,
+            datetime,
+            unitPriceTHB: result.thb,
+            unitPriceUSD: result.usd,
+            totalTHB,
+            totalUSD,
+            source: result.source
+          };
+
+          // Update UI Card
+          document.getElementById('resCoinSymbol').textContent = symbol;
+          document.getElementById('resAmountLabel').textContent = amount.toLocaleString(undefined, { maximumFractionDigits: 8 }) + ' ' + symbol;
+          document.getElementById('resTotalTHB').textContent = '฿' + totalTHB.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          document.getElementById('resTotalUSD').textContent = '≈ $' + totalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' USD';
+          document.getElementById('resUnitPriceTHB').textContent = '฿' + result.thb.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' / ' + symbol;
+          document.getElementById('resUnitPriceUSD').textContent = '$' + result.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 }) + ' USD';
+          document.getElementById('resTimestamp').textContent = datetime.replace('T', ' ');
+          document.getElementById('resSource').textContent = result.source;
+
+          document.getElementById('addJournalBtn').disabled = false;
+          document.getElementById('copySummaryBtn').disabled = false;
+          document.getElementById('copyExcelBtn').disabled = false;
+          document.getElementById('copyUnitPriceBtn').disabled = false;
+          document.getElementById('copyTotalValBtn').disabled = false;
+
+          showToast(`ดึงราคา ${symbol} สำเร็จเรียบร้อย!`, 'success');
+        } catch (err) {
+          console.error(err);
+          showToast('เกิดข้อผิดพลาดในการดึงราคา: ' + err.message, 'error');
+        } finally {
+          submitBtn.disabled = false;
+          btnText.textContent = 'ดึงราคา CoinGecko & คำนวณมูลค่า THB';
+        }
+      });
+
+      // Add to Journal
+      document.getElementById('addJournalBtn').addEventListener('click', () => {
+        if (!currentCalculation) return;
+        journalEntries.unshift({ ...currentCalculation, id: Date.now() });
+        localStorage.setItem('crypto_thb_journal', JSON.stringify(journalEntries));
+        renderJournalTable();
+        showToast('บันทึกลงสมุดบัญชีต้นทุนแล้ว!', 'success');
+      });
+
+      // Copy Summary Text
+      document.getElementById('copySummaryBtn').addEventListener('click', () => {
+        if (!currentCalculation) return;
+        const c = currentCalculation;
+        const text = `[Crypto Valuation]\nเหรียญ: ${c.amount} ${c.symbol}\nราคา/เหรียญ: ฿${c.unitPriceTHB.toLocaleString()} THB\nมูลค่ารวม: ฿${c.totalTHB.toLocaleString()} THB\nวันเวลา (UTC+7): ${c.datetime.replace('T', ' ')}\nอ้างอิง: ${c.source}`;
+        copyToClipboard(text, 'คัดลอกข้อความสรุปไปยัง Clipboard แล้ว');
+      });
+
+      // Copy Tab-Separated Values for Excel/Google Sheets
+      document.getElementById('copyExcelBtn').addEventListener('click', () => {
+        if (!currentCalculation) return;
+        const c = currentCalculation;
+        // Tab-separated string formats into columns in Excel
+        const tsv = `${c.datetime.replace('T', ' ')}\t${c.symbol}\t${c.amount}\t${c.unitPriceTHB}\t${c.totalTHB}\t${c.source}`;
+        copyToClipboard(tsv, 'คัดลอกตารางสำหรับ Excel (Tab-Separated) แล้ว วางใน Sheet ได้เลย!');
+      });
+
+      // Copy Raw Numbers
+      document.getElementById('copyUnitPriceBtn').addEventListener('click', () => {
+        if (!currentCalculation) return;
+        copyToClipboard(currentCalculation.unitPriceTHB.toString(), 'คัดลอกตัวเลขราคาต่อเหรียญแล้ว');
+      });
+
+      document.getElementById('copyTotalValBtn').addEventListener('click', () => {
+        if (!currentCalculation) return;
+        copyToClipboard(currentCalculation.totalTHB.toString(), 'คัดลอกตัวเลขออเดอร์มูลค่ารวมแล้ว');
+      });
+
+      // Copy All Journal Entries as TSV for Excel
+      document.getElementById('copyJournalExcelBtn').addEventListener('click', () => {
+        if (journalEntries.length === 0) {
+          showToast('ไม่มีข้อมูลในสมุดบันทึกสำหรับคัดลอก', 'error');
+          return;
+        }
+        let tsv = 'DateTime\tSymbol\tAmount\tUnitPriceTHB\tTotalTHB\tSource\n';
+        journalEntries.forEach(e => {
+          tsv += `${e.datetime.replace('T', ' ')}\t${e.symbol}\t${e.amount}\t${e.unitPriceTHB}\t${e.totalTHB}\t${e.source}\n`;
+        });
+        copyToClipboard(tsv, 'คัดลอกสมุดบันทึกทั้งหมดสำหรับ Excel แล้ว! (Ctrl+V วางใน Sheet ได้ทันที)');
+      });
+
+      // Export CSV & Clear Journal
+      document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+      document.getElementById('clearJournalBtn').addEventListener('click', () => {
+        if (journalEntries.length === 0) return;
+        journalEntries = [];
+        localStorage.removeItem('crypto_thb_journal');
+        renderJournalTable();
+        showToast('ล้างรายการทั้งหมดเรียบร้อยแล้ว', 'info');
+      });
+
+      // Modals
+      const infoModal = document.getElementById('infoModal');
+      document.getElementById('openInfoBtn').onclick = () => infoModal.classList.remove('hidden');
+      document.getElementById('closeInfoBtn').onclick = () => infoModal.classList.add('hidden');
+    });
+
+    (function registerPWA() {
+      const svgIcon = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='128' fill='%230f172a'/><circle cx='256' cy='256' r='180' fill='url(%23g)'/><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%25' stop-color='%2310b981'/><stop offset='100%25' stop-color='%2314b8a6'/></linearGradient></defs><text x='256' y='325' font-size='220' font-family='sans-serif' font-weight='bold' fill='%230f172a' text-anchor='middle'>฿</text></svg>`;
+
+      const manifest = {
+        name: "Crypto THB Valuation & Cost Basis",
+        short_name: "Crypto THB",
+        description: "คำนวณราคาคริปโทเป็นเงินบาทตามเวลาจริงย้อนหลังด้วย CoinGecko API & บันทึกต้นทุน",
+        start_url: "./",
+        display: "standalone",
+        background_color: "#0f172a",
+        theme_color: "#0f172a",
+        orientation: "portrait-primary",
+        icons: [
+          {
+            src: svgIcon,
+            sizes: "192x192 512x512",
+            type: "image/svg+xml",
+            purpose: "any maskable"
+          }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      const manifestUrl = URL.createObjectURL(manifestBlob);
+      const manifestElem = document.getElementById('manifestPlaceholder');
+      if (manifestElem) manifestElem.setAttribute('href', manifestUrl);
+
+      if ('serviceWorker' in navigator) {
+        const swCode = `
+          const CACHE_NAME = 'crypto-thb-v2';
+          self.addEventListener('install', (e) => self.skipWaiting());
+          self.addEventListener('activate', (e) => self.clients.claim());
+          self.addEventListener('fetch', (e) => {
+            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+          });
+        `;
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(swBlob);
+        navigator.serviceWorker.register(swUrl).catch((err) => console.warn('SW registration warning:', err));
+      }
+
+      let deferredPrompt;
+      const installBtn = document.getElementById('pwaInstallBtn');
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (installBtn) installBtn.classList.remove('hidden');
+      });
+
+      if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+          if (!deferredPrompt) return;
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            showToast('ติดตั้งแอป Crypto THB เรียบร้อยแล้ว!', 'success');
+          }
+          deferredPrompt = null;
+          installBtn.classList.add('hidden');
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
